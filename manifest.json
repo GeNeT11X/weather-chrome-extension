@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Weather Theme Changer",
+  "version": "1.0",
+  "description": "Changes Chrome theme based on live weather",
+  
+  "permissions": [
+    "geolocation"
+  ],
+  
+  "host_permissions": [
+    "https://api.openweathermap.org/*"
+  ],
+  
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Weather Theme Changer"
+  },
+  
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}
