@@ -1,4 +1,4 @@
-const API_KEY = 'your api key'; // Replace with your OpenWeatherMap API key
+const API_KEY = '780524575dc2d255d22d2582f5506d43'; // Replace with your OpenWeatherMap API key
 
 const themes = {
   Clear: {
