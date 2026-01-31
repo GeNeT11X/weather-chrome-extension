@@ -22,13 +22,18 @@ function requestInitialWeather() {
     }
 
     const weatherCondition = response?.weatherCondition || "Default";
+    const weatherIcon = response?.weatherIcon || "01d";
     applyTheme(weatherCondition);
-    
-    const weatherInfo = document.getElementById("weather-info");
-    if (weatherInfo) {
-      weatherInfo.textContent = `Current Theme: ${weatherCondition}`;
-    }
+    displayWeatherInfo(weatherCondition, weatherIcon);
   });
+}
+
+function displayWeatherInfo(weatherCondition, weatherIcon) {
+  const weatherInfo = document.getElementById("weather-info");
+  if (weatherInfo) {
+    const iconUrl = `https://openweathermap.org/img/wn/${weatherIcon}@2x.png`;
+    weatherInfo.innerHTML = `Current Theme: ${weatherCondition} <img src="${iconUrl}" alt="Weather icon" style="width: 40px; height: 40px; margin-right: 8px; margin-bottom: -10px;">`;
+  }
 }
 
 function applyTheme(weather) {
@@ -58,7 +63,9 @@ function getWeather() {
             },
             (response) => {
               const weatherCondition = response?.weatherCondition || "Default";
+              const weatherIcon = response?.weatherIcon || "01d";
               applyTheme(weatherCondition);
+              displayWeatherInfo(weatherCondition, weatherIcon);
               resolve(weatherCondition);
             }
           );
