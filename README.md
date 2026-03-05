@@ -6,7 +6,7 @@ This Chrome extension automatically changes the browser's theme colors based on 
 
 - Live weather detection using OpenWeatherMap
 - Dynamic theme updates (sunny, rainy, cloudy, etc.)
-- Clean and simple popup interface
+- Clean and simple popup interface and UI
 
 ## 🔧 Installation
 
