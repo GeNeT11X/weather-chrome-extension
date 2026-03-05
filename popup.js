@@ -1,5 +1,3 @@
-import { themes } from './themes.js';
-
 // Wait for DOM to load before setting up event listeners
 document.addEventListener("DOMContentLoaded", function () {
   const refreshBtn = document.getElementById("refresh-btn");
@@ -7,7 +5,17 @@ document.addEventListener("DOMContentLoaded", function () {
     refreshBtn.addEventListener("click", refreshWeather);
   }
 
-  requestInitialWeather();
+  // Bug 5 fix: on first install, trigger geolocation immediately so background
+  // can store coords and apply the first theme
+  chrome.storage.local.get(['needsInitialFetch'], (result) => {
+    if (result.needsInitialFetch) {
+      getWeather().then(() => {
+        chrome.storage.local.remove('needsInitialFetch');
+      });
+    } else {
+      requestInitialWeather();
+    }
+  });
 });
 
 function requestInitialWeather() {
@@ -23,7 +31,6 @@ function requestInitialWeather() {
 
     const weatherCondition = response?.weatherCondition || "Default";
     const weatherIcon = response?.weatherIcon || "01d";
-    applyTheme(weatherCondition);
     displayWeatherInfo(weatherCondition, weatherIcon);
   });
 }
@@ -36,48 +43,79 @@ function displayWeatherInfo(weatherCondition, weatherIcon) {
   }
 }
 
-function applyTheme(weather) {
-  const theme = themes[weather] || themes.Default;
-  
-  try {
-    chrome?.theme?.update({ colors: theme.colors });
-    console.log('Theme applied:', weather);
-  } catch (error) {
-    console.error('Theme error:', error);
-  }
+/**
+ * Sends lat/lon to the background to fetch weather and returns the condition.
+ */
+function fetchWeatherForCoords(latitude, longitude, resolve) {
+  const weatherInfo = document.getElementById("weather-info");
+  chrome.storage.local.set({ lat: latitude, lon: longitude });
+
+  chrome.runtime.sendMessage(
+    { action: "refreshWeather", lat: latitude, lon: longitude },
+    (response) => {
+      if (chrome.runtime.lastError) {
+        console.error("Message error:", chrome.runtime.lastError);
+        if (weatherInfo) weatherInfo.textContent = "Error refreshing weather";
+        resolve("Default");
+        return;
+      }
+
+      const weatherCondition = response?.weatherCondition || "Default";
+      const weatherIcon = response?.weatherIcon || "01d";
+      displayWeatherInfo(weatherCondition, weatherIcon);
+      resolve(weatherCondition);
+    }
+  );
+}
+
+/**
+ * Fallback: get approximate location from IP if device geolocation is denied.
+ * Uses ipapi.co (free, no key required, 1000 req/day).
+ */
+function getLocationByIP(resolve) {
+  const weatherInfo = document.getElementById("weather-info");
+  if (weatherInfo) weatherInfo.textContent = "Using approximate location...";
+
+  fetch("https://ipapi.co/json/")
+    .then((res) => {
+      if (!res.ok) throw new Error(`IP API error: ${res.status}`);
+      return res.json();
+    })
+    .then((data) => {
+      if (!data.latitude || !data.longitude) {
+        throw new Error("IP API returned no coordinates");
+      }
+      console.log("IP-based location:", data.latitude, data.longitude);
+      fetchWeatherForCoords(data.latitude, data.longitude, resolve);
+    })
+    .catch((err) => {
+      console.error("IP geolocation failed:", err);
+      if (weatherInfo) weatherInfo.textContent = "Error: Could not determine location";
+      resolve("Default");
+    });
 }
 
 function getWeather() {
   return new Promise((resolve) => {
+    const weatherInfo = document.getElementById("weather-info");
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (position) => {
+        (position) => {
           const { latitude, longitude } = position.coords;
-          chrome.storage.local.set({ lat: latitude, lon: longitude });
-
-          chrome.runtime.sendMessage(
-            {
-              action: "refreshWeather",
-              lat: latitude,
-              lon: longitude,
-            },
-            (response) => {
-              const weatherCondition = response?.weatherCondition || "Default";
-              const weatherIcon = response?.weatherIcon || "01d";
-              applyTheme(weatherCondition);
-              displayWeatherInfo(weatherCondition, weatherIcon);
-              resolve(weatherCondition);
-            }
-          );
+          fetchWeatherForCoords(latitude, longitude, resolve);
         },
         (error) => {
-          console.error("Geolocation error:", error);
-          resolve("Default");
-        }
+          // Device geolocation denied or unavailable — fall back to IP location
+          console.warn("Geolocation denied, falling back to IP-based location:", error.message);
+          getLocationByIP(resolve);
+        },
+        { timeout: 8000 } // Don't wait forever if the browser hangs on the prompt
       );
     } else {
-      console.error("Geolocation not supported");
-      resolve("Default");
+      console.warn("Geolocation not supported, using IP-based location");
+      if (weatherInfo) weatherInfo.textContent = "Using approximate location...";
+      getLocationByIP(resolve);
     }
   });
 }
@@ -87,22 +125,16 @@ function refreshWeather() {
   if (weatherInfo) {
     weatherInfo.textContent = "Refreshing weather...";
   }
-  
-  getWeather();
+
+  getWeather().catch(() => {
+    if (weatherInfo) weatherInfo.textContent = "Error refreshing weather";
+  });
 }
 
-// Listen for messages from background script
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  const weatherInfo = document.getElementById("weather-info");
-
-  if (message.weatherCondition) {
-    applyTheme(message.weatherCondition);
-    if (weatherInfo) {
-      weatherInfo.textContent = `Current Theme: ${message.weatherCondition}`;
-    }
-  }
-
-  if (message.error && weatherInfo) {
-    weatherInfo.textContent = "Error: Unable to fetch weather";
-  }
-});
+// Bug 4 fix: removed the unreliable chrome.runtime.onMessage listener.
+// Popup pages are ephemeral — they are destroyed when closed and cannot
+// reliably receive background push messages. The popup now correctly pulls
+// weather data itself via requestInitialWeather() and getWeather().
+//
+// Bug 3 fix: removed applyTheme() entirely — chrome.theme.update() does not
+// work in popup pages in MV3. Theme is now applied by background.js.

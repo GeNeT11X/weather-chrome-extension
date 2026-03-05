@@ -12,8 +12,19 @@ This Chrome extension automatically changes the browser's theme colors based on 
 
 1. Clone this repo:
 
+```bash
+git clone https://github.com/YOUR_USERNAME/weather-theme-extension.git
+```
 
-2. Go to `chrome://extensions` in your browser
+2. Open `config.js` and add your [OpenWeatherMap API key](https://openweathermap.org/api):
+
+```js
+export const CONFIG = {
+    API_KEY: 'your_api_key_here'
+};
+```
+
+3. Go to `chrome://extensions` in your browser
 
 3. Enable **Developer Mode**
 

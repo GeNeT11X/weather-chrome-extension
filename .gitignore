@@ -1,0 +1,12 @@
+# API key config — never commit the real key
+config.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.suo
+*.user
