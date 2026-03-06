@@ -106,8 +106,13 @@ function getWeather() {
           fetchWeatherForCoords(latitude, longitude, resolve);
         },
         (error) => {
-          // Device geolocation denied or unavailable — fall back to IP location
-          console.warn("Geolocation denied, falling back to IP-based location:", error.message);
+          // Device geolocation denied, unavailable, or timed out — log full error and show user
+          console.error("Geolocation error:", error);
+          const msg = error && error.message ? error.message : error ? error.toString() : "Unknown error";
+          if (weatherInfo) {
+            weatherInfo.textContent = `Geolocation error: ${msg}`;
+          }
+          console.warn("Falling back to IP-based location:", msg);
           getLocationByIP(resolve);
         },
         { timeout: 8000 } // Don't wait forever if the browser hangs on the prompt
