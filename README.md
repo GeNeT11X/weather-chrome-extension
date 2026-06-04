@@ -2,7 +2,7 @@
 
 This browser extension automatically changes the browser's theme colors based on the current weather in your location.
 
-## 🚀 Features
+##  Features
 
 - Live weather detection using OpenWeatherMap (free Current Weather 2.5 API)
 - Dynamic theme updates (sunny, rainy, cloudy, etc.)
@@ -17,7 +17,7 @@ This browser extension automatically changes the browser's theme colors based on
 
 **Chrome cannot dynamically theme its own toolbar/tabs at runtime** — that API (`theme.update()`) is Firefox-only. In Chrome the extension still works, but only the *popup* changes color. **For the real browser frame to change with the weather, use Firefox.**
 
-## ✅ Prerequisites
+##  Prerequisites
 
 - **Firefox 140 or newer** — required to actually run the extension.
 - *Only if you want to build/sign it yourself (Option 2):*
@@ -27,7 +27,7 @@ This browser extension automatically changes the browser's theme colors based on
 
 ---
 
-## 🦊 Option 1 — Install the ready-made file (easiest) ⭐
+## 🦊 Option 1 — Install the ready-made file (easiest) 
 
 Use this if someone gave you the signed **`.xpi`** file. You do **not** need Node.js, npm, or any API key.
 
@@ -39,7 +39,7 @@ Use this if someone gave you the signed **`.xpi`** file. You do **not** need Nod
 6. In the popup, click **Add**, then **Okay**.
 7. A **setup tab** opens automatically → click **Enable Location** and allow the browser's location prompt.
 
-✅ **Done.** The extension is now installed **permanently** — it stays after you close and reopen Firefox. Your tabs/toolbar recolor to match the weather (amber = clear, teal = rain, navy = thunderstorm, …) and refresh every 15 minutes.
+**Done.** The extension is now installed **permanently** — it stays after you close and reopen Firefox. Your tabs/toolbar recolor to match the weather (amber = clear, teal = rain, navy = thunderstorm, …) and refresh every 15 minutes.
 
 > A shared `.xpi` uses the owner's OpenWeatherMap key, so everyone shares that key's request quota. To use your own key, follow **Option 2**.
 
@@ -107,7 +107,7 @@ Loads instantly but **disappears when Firefox closes**:
 
 ---
 
-## 🟦 Using it in Chrome (popup colors only)
+##  Using it in Chrome (popup colors only)
 
 Chrome has no runtime theming API, so only the **popup** recolors (not the toolbar/tabs):
 
@@ -117,7 +117,7 @@ Chrome has no runtime theming API, so only the **popup** recolors (not the toolb
 
 ---
 
-## 🧰 Developer scripts
+##  Developer scripts
 
 ```bash
 npm run lint     # validate against Firefox rules (Mozilla web-ext linter)
@@ -131,7 +131,7 @@ npm run sign     # sign as an unlisted .xpi (needs --api-key / --api-secret)
 - [ ] Add city selection option
 - [x] Add weather icons in popup
 
-## 🤝 Contributing
+##  Contributing
 
 1. Fork the repo
 2. Create a new branch: `git checkout -b feature-name`
@@ -141,6 +141,6 @@ npm run sign     # sign as an unlisted .xpi (needs --api-key / --api-secret)
 
 ---
 
-## 📄 License
+##  License
 
 This project is licensed under the MIT License.
