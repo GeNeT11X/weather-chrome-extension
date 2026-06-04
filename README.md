@@ -17,88 +17,107 @@ This browser extension automatically changes the browser's theme colors based on
 
 **Chrome cannot dynamically theme its own toolbar/tabs at runtime** — that API (`theme.update()`) is Firefox-only. In Chrome the extension still works, but only the *popup* changes color. **For the real browser frame to change with the weather, use Firefox.**
 
-## 🔧 Setup
+## ✅ Prerequisites
 
-1. Clone this repo:
+- **Firefox 140 or newer** — required to actually run the extension.
+- *Only if you want to build/sign it yourself (Option 2):*
+  - **[Node.js](https://nodejs.org) 18+** (this gives you the `npm` command)
+  - A free **[OpenWeatherMap API key](https://home.openweathermap.org/users/sign_up)**
+  - A free **[addons.mozilla.org](https://addons.mozilla.org) (AMO)** account
 
+---
+
+## 🦊 Option 1 — Install the ready-made file (easiest) ⭐
+
+Use this if someone gave you the signed **`.xpi`** file. You do **not** need Node.js, npm, or any API key.
+
+1. Open **Firefox**.
+2. Type `about:addons` in the address bar and press **Enter**.
+3. Click the **gear ⚙️** icon near the top-right.
+4. Click **Install Add-on From File…**.
+5. Browse to and select the **`.xpi`** file you were given, then click **Open**.
+6. In the popup, click **Add**, then **Okay**.
+7. A **setup tab** opens automatically → click **Enable Location** and allow the browser's location prompt.
+
+✅ **Done.** The extension is now installed **permanently** — it stays after you close and reopen Firefox. Your tabs/toolbar recolor to match the weather (amber = clear, teal = rain, navy = thunderstorm, …) and refresh every 15 minutes.
+
+> A shared `.xpi` uses the owner's OpenWeatherMap key, so everyone shares that key's request quota. To use your own key, follow **Option 2**.
+
+---
+
+## 🛠 Option 2 — Build & sign your own copy (your own API key)
+
+Use this if you want your own API key/quota or you're developing the extension.
+
+### Step 1 — Get the code and tooling
 ```bash
 git clone https://github.com/GeNeT11X/theme-change-firefox-extension.git
 cd theme-change-firefox-extension
+npm install
 ```
 
-2. Create your config from the example (`config.js` is git-ignored so your key is never committed):
-
+### Step 2 — Add your free OpenWeatherMap key
 ```bash
 cp config.example.js config.js
 ```
-
-3. Get a **free** [OpenWeatherMap API key](https://home.openweathermap.org/users/sign_up), then open `config.js` and paste it in:
-
+Open `config.js` and paste your key (it's git-ignored, so it's never committed):
 ```js
 export const CONFIG = {
     API_KEY: 'your_api_key_here'
 };
 ```
+> ℹ️ A brand-new key can take **up to ~2 hours to activate** (until then you'll see `401 Invalid API key`). This uses the **free Current Weather 2.5 API** — no paid plan or credit card required.
 
-   > ℹ️ A newly created key can take **up to ~2 hours to activate**. Until then the API returns `401 Invalid API key`. This extension uses the free **Current Weather Data (2.5)** endpoint — no paid plan or credit card is required.
-
-4. Install the build tooling:
-
-```bash
-npm install
+### Step 3 — Set a unique add-on ID
+Open `manifest.json` and change `browser_specific_settings.gecko.id` to your own email-style value:
+```json
+"id": "weather-theme@your-name.example"
 ```
+> Each person must use a **different** ID — Mozilla ties an ID to the first account that signs it.
 
-## 🦊 Install in Firefox
+### Step 4 — Get your Mozilla signing credentials
+Sign in at [addons.mozilla.org](https://addons.mozilla.org) → **[Manage API Keys](https://addons.mozilla.org/developers/addon/api/key/)** → **Generate new credentials**. Copy the **JWT issuer** and **JWT secret**.
 
-### A) Quick test — temporary (removed when Firefox restarts)
-
-1. Open `about:debugging#/runtime/this-firefox`
-2. Click **Load Temporary Add-on…** and select `manifest.json`
-3. The setup tab opens → click **Enable Location** and allow the prompt
-
-### B) Permanent install — signed (stays after restart) ✅ recommended
-
-Normal Firefox only runs add-ons **signed by Mozilla**. Signing is free and, using the **unlisted** channel, your add-on stays private (it is *not* published to the public store). The result is a `.xpi` file you install permanently.
-
-1. **Create AMO API credentials** (one-time): sign in at [addons.mozilla.org](https://addons.mozilla.org), then go to **[Manage API Keys](https://addons.mozilla.org/developers/addon/api/key/)** and click **Generate new credentials**. Copy the **JWT issuer** and **JWT secret**.
-
-2. **Use a unique add-on ID.** Open `manifest.json` and set your own value for `browser_specific_settings.gecko.id` (an email-style string you control), e.g.:
-
-   ```json
-   "id": "weather-theme@your-name.example"
-   ```
-
-   > Each person who signs must use a *different* ID — Mozilla ties the ID to the account that first signs it.
-
-3. **Sign it** (downloads a signed `.xpi` into `web-ext-artifacts/`):
-
+### Step 5 — Sign it
 ```bash
 npm run sign -- --api-key="YOUR_JWT_ISSUER" --api-secret="YOUR_JWT_SECRET"
 ```
+This uploads to Mozilla and saves a **signed `.xpi`** in the `web-ext-artifacts/` folder.
+> 🔒 If you won't reuse them, **revoke those credentials** on AMO afterward.
 
-4. **Install the signed `.xpi`:** open `about:addons` → click the **gear ⚙️** → **Install Add-on From File…** → select the `.xpi` from `web-ext-artifacts/`. Confirm.
+### Step 6 — Install it
+Follow **Option 1, steps 2–7**, selecting the `.xpi` from the `web-ext-artifacts/` folder.
 
-5. On first install the setup tab opens → click **Enable Location**. The browser theme now matches the weather, refreshes every 15 minutes, and **persists across restarts**.
+---
 
-## 👥 Installing it on another user's computer
+## 🧪 Just want to test quickly? (temporary, no signing)
 
-Anyone can run this permanently on their own machine by following the **same steps above** with their own details:
+Loads instantly but **disappears when Firefox closes**:
 
-1. Clone the repo and run `cp config.example.js config.js` + `npm install` (Setup steps 1–4).
-2. Add **their own** free OpenWeatherMap key to `config.js` (so each person uses their own request quota — a single shared key would hit rate limits).
-3. Set **their own** unique `gecko.id` in `manifest.json` (see Permanent install step 2).
-4. Create **their own** AMO API credentials and run `npm run sign -- --api-key=... --api-secret=...`.
-5. Install the produced `.xpi` via `about:addons` → gear → **Install Add-on From File**.
+1. Open `about:debugging#/runtime/this-firefox`
+2. Click **Load Temporary Add-on…** and select `manifest.json`
 
-> **Want one-click install for everyone instead?** Publish it as a **listed** add-on: run `npm run sign -- --channel=listed ...` (or submit the zip on AMO) and pass Mozilla's review. Users then install it from your public AMO page with a single **Add to Firefox** button — no cloning, signing, or API keys required on their end (though they'd still need their own OpenWeatherMap key unless you ship a backend proxy).
+---
 
-## 🟦 Load in Chrome (popup-only coloring)
+## 👥 Sharing it with other people
+
+- **Easiest:** send them your signed `.xpi` → they follow **Option 1**. (They share your API quota.)
+- **Independent:** they follow **Option 2** with their own key, ID, and AMO account.
+- **Public store:** publish a **listed** add-on with `npm run sign -- --channel=listed ...` (passes Mozilla review) so anyone installs from your AMO page with one **Add to Firefox** click.
+
+---
+
+## 🟦 Using it in Chrome (popup colors only)
+
+Chrome has no runtime theming API, so only the **popup** recolors (not the toolbar/tabs):
 
 1. Go to `chrome://extensions`
 2. Enable **Developer Mode**
-3. Click **Load unpacked** and select this folder
+3. Click **Load unpacked** and select the project folder
 
-## 🧪 Development
+---
+
+## 🧰 Developer scripts
 
 ```bash
 npm run lint     # validate against Firefox rules (Mozilla web-ext linter)

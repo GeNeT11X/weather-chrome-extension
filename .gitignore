@@ -4,6 +4,7 @@ config.js
 # Build artifacts & tooling
 web-ext-artifacts/
 node_modules/
+.amo-upload-uuid
 
 # OS files
 .DS_Store
