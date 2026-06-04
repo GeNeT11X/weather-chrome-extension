@@ -22,8 +22,8 @@ This browser extension automatically changes the browser's theme colors based on
 1. Clone this repo:
 
 ```bash
-git clone https://github.com/GeNeT11X/weather-chrome-extension.git
-cd weather-chrome-extension
+git clone https://github.com/GeNeT11X/theme-change-firefox-extension.git
+cd theme-change-firefox-extension
 ```
 
 2. Create your config from the example (`config.js` is git-ignored so your key is never committed):
