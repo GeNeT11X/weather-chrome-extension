@@ -1,6 +1,10 @@
 # API key config — never commit the real key
 config.js
 
+# Build artifacts & tooling
+web-ext-artifacts/
+node_modules/
+
 # OS files
 .DS_Store
 Thumbs.db

@@ -1,3 +1,32 @@
+import { themes } from "./themes.js";
+
+// Chrome can't recolor the browser chrome at runtime (chrome.theme.update is
+// Firefox-only), so we paint the popup itself with the weather palette instead.
+function rgb(arr) {
+  return `rgb(${arr[0]}, ${arr[1]}, ${arr[2]})`;
+}
+
+function applyPopupTheme(weatherCondition) {
+  const theme = themes[weatherCondition] || themes.Default;
+  const c = theme.colors;
+
+  // body sits on the "toolbar" color; header & button use the bolder "frame" color.
+  document.body.style.backgroundColor = rgb(c.toolbar);
+  document.body.style.color = rgb(c.bookmark_text);
+
+  const h1 = document.querySelector("h1");
+  if (h1) {
+    h1.style.backgroundColor = rgb(c.frame);
+    h1.style.color = rgb(c.tab_background_text);
+  }
+
+  const btn = document.getElementById("refresh-btn");
+  if (btn) {
+    btn.style.backgroundColor = rgb(c.frame);
+    btn.style.color = rgb(c.tab_background_text);
+  }
+}
+
 // Wait for DOM to load before setting up event listeners
 document.addEventListener("DOMContentLoaded", function () {
   const refreshBtn = document.getElementById("refresh-btn");
@@ -38,9 +67,18 @@ function requestInitialWeather() {
 function displayWeatherInfo(weatherCondition, weatherIcon) {
   const weatherInfo = document.getElementById("weather-info");
   if (weatherInfo) {
-    const iconUrl = `https://openweathermap.org/img/wn/${weatherIcon}@2x.png`;
-    weatherInfo.innerHTML = `Current Theme: ${weatherCondition} <img src="${iconUrl}" alt="Weather icon" style="width: 40px; height: 40px; margin-right: 8px; margin-bottom: -10px;">`;
+    // Build with DOM nodes instead of innerHTML (avoids the unsafe-assignment lint).
+    weatherInfo.textContent = `Current Theme: ${weatherCondition} `;
+    const img = document.createElement("img");
+    img.src = `https://openweathermap.org/img/wn/${weatherIcon}@2x.png`;
+    img.alt = "Weather icon";
+    img.style.width = "40px";
+    img.style.height = "40px";
+    img.style.marginLeft = "8px";
+    img.style.verticalAlign = "middle";
+    weatherInfo.appendChild(img);
   }
+  applyPopupTheme(weatherCondition);
 }
 
 /**
@@ -56,6 +94,13 @@ function fetchWeatherForCoords(latitude, longitude, resolve) {
       if (chrome.runtime.lastError) {
         console.error("Message error:", chrome.runtime.lastError);
         if (weatherInfo) weatherInfo.textContent = "Error refreshing weather";
+        resolve("Default");
+        return;
+      }
+
+      // Surface a specific reason (e.g. invalid/missing API key) instead of a silent fallback.
+      if (response?.error) {
+        if (weatherInfo) weatherInfo.textContent = response.error;
         resolve("Default");
         return;
       }
@@ -95,6 +140,19 @@ function getLocationByIP(resolve) {
     });
 }
 
+/**
+ * Turns a GeolocationPositionError into a human-readable string.
+ */
+function describeGeoError(error) {
+  if (!error) return "Unknown geolocation error";
+  switch (error.code) {
+    case 1: return "Location permission denied";
+    case 2: return "Location unavailable (network location service failed)";
+    case 3: return "Location request timed out";
+    default: return error.message || "Unknown geolocation error";
+  }
+}
+
 function getWeather() {
   return new Promise((resolve) => {
     const weatherInfo = document.getElementById("weather-info");
@@ -107,15 +165,12 @@ function getWeather() {
         },
         (error) => {
           // Device geolocation denied, unavailable, or timed out — log full error and show user
-          console.error("Geolocation error:", error);
-          const msg = error && error.message ? error.message : error ? error.toString() : "Unknown error";
-          if (weatherInfo) {
-            weatherInfo.textContent = `Geolocation error: ${msg}`;
-          }
-          console.warn("Falling back to IP-based location:", msg);
+          console.warn("Geolocation unavailable, falling back to IP location:", describeGeoError(error));
           getLocationByIP(resolve);
         },
-        { timeout: 8000 } // Don't wait forever if the browser hangs on the prompt
+        // maximumAge lets a recent cached fix satisfy the request instantly;
+        // the longer timeout avoids premature failures while the prompt is open.
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 }
       );
     } else {
       console.warn("Geolocation not supported, using IP-based location");

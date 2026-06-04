@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Theme Changer — Setup</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body { width: auto; max-width: 520px; margin: 40px auto; }
+    .setup { padding: 24px; }
+    .hint { font-size: 13px; color: #666; margin-top: 16px; }
+    #status { min-height: 20px; }
+  </style>
+</head>
+<body>
+  <div class="container setup">
+    <h1>🌦 Weather Theme Changer</h1>
+    <p>To match your browser theme to the weather, this extension needs your location.</p>
+    <button id="enable-btn" type="button">Enable Location</button>
+    <p id="status"></p>
+    <p class="hint">
+      If you'd rather not share precise location, click "Enable Location" and deny —
+      we'll fall back to an approximate location based on your IP address.
+    </p>
+  </div>
+  <script src="permission.js"></script>
+</body>
+</html>
