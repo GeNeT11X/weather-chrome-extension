@@ -27,7 +27,7 @@ This browser extension automatically changes the browser's theme colors based on
 
 ---
 
-## 🦊 Option 1 — Install the ready-made file (easiest) 
+##  Option 1 — Install the ready-made file (easiest) 
 
 Use this if someone gave you the signed **`.xpi`** file. You do **not** need Node.js, npm, or any API key.
 
@@ -83,14 +83,14 @@ Sign in at [addons.mozilla.org](https://addons.mozilla.org) → **[Manage API Ke
 npm run sign -- --api-key="YOUR_JWT_ISSUER" --api-secret="YOUR_JWT_SECRET"
 ```
 This uploads to Mozilla and saves a **signed `.xpi`** in the `web-ext-artifacts/` folder.
-> 🔒 If you won't reuse them, **revoke those credentials** on AMO afterward.
+>  If you won't reuse them, **revoke those credentials** on AMO afterward.
 
 ### Step 6 — Install it
 Follow **Option 1, steps 2–7**, selecting the `.xpi` from the `web-ext-artifacts/` folder.
 
 ---
 
-## 🧪 Just want to test quickly? (temporary, no signing)
+##  Just want to test quickly? (temporary, no signing)
 
 Loads instantly but **disappears when Firefox closes**:
 
@@ -99,7 +99,7 @@ Loads instantly but **disappears when Firefox closes**:
 
 ---
 
-## 👥 Sharing it with other people
+##  Sharing it with other people
 
 - **Easiest:** send them your signed `.xpi` → they follow **Option 1**. (They share your API quota.)
 - **Independent:** they follow **Option 2** with their own key, ID, and AMO account.
